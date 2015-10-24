@@ -32,6 +32,34 @@ int comp(const void *a, const void *b)
     return (((struct Letter*)b)->frequency - ((struct Letter*)a)->frequency);
 }
 
+
+void replaceMultad(char *decryptedText, int noOfLetters, char *text, char *string, char replace, char *key) {
+    int theTriadCount[NO_OF_LETTERS];
+    for (int count = 0; count < NO_OF_LETTERS; count++)
+        theTriadCount[count] = 0;
+
+    int maxLetterId = 0;
+    for (int count = 0; count < noOfLetters - 2; count++) {
+        int ok = 1;
+        for (int it = 0; it < strlen(string); it++)
+            if (decryptedText[count + it] != string[it])
+                ok = 0;
+        int starPos = strchr(string, '*') - string;
+        if (ok) {
+            if (++theTriadCount[text[count + starPos] - 'A'] > theTriadCount[maxLetterId]) {
+                maxLetterId = text[count + starPos] - 'A';
+            }
+        }
+    }
+
+    for (int count = 0; count < noOfLetters; count++) {
+        if (text[count] == maxLetterId + 'A') {
+            decryptedText[count] = replace;
+        }
+    }
+    key[replace - 'A'] = maxLetterId + 'A';
+}
+
 int main() {
 
     struct Letter letters[NO_OF_LETTERS];
@@ -51,11 +79,6 @@ int main() {
 
     qsort(letters, NO_OF_LETTERS, sizeof(struct Letter), comp);
 
-    char key[] = "ETAOINSRHLDCUMFPGWYBVKXJQZ";
-
-
-
-
     char decryptedText[TEXT_LEN];
     for (int count = 0; count < noOfLetters; count++) {
         int letterIndex = 0;
@@ -69,212 +92,68 @@ int main() {
             decryptedText[count] = '*';
     }
 
+    char key[NO_OF_LETTERS];
+    for (int count = 0; count < NO_OF_LETTERS; count++) {
+        key[count] = '*';
+    }
+    key['E' - 'A'] = letters[0].letter;
+    key['T' - 'A'] = letters[1].letter;
+    key['A' - 'A'] = letters[2].letter;
+
+    replaceMultad(decryptedText, noOfLetters, text, "T*E",  'H', key);
+    replaceMultad(decryptedText, noOfLetters, text, "T*",   'O', key);
+    replaceMultad(decryptedText, noOfLetters, text, "E*",   'R', key);
+    replaceMultad(decryptedText, noOfLetters, text, "A*",   'N', key);
+    replaceMultad(decryptedText, noOfLetters, text, "*N",   'I', key);
+    replaceMultad(decryptedText, noOfLetters, text, "A*",   'S', key);
+    replaceMultad(decryptedText, noOfLetters, text, "*OR",  'F', key);
+    replaceMultad(decryptedText, noOfLetters, text, "HI*",  'M', key);
+    replaceMultad(decryptedText, noOfLetters, text, "O*",   'U', key);
+    replaceMultad(decryptedText, noOfLetters, text, "*OU",  'Y', key);
+    replaceMultad(decryptedText, noOfLetters, text, "HA*E", 'V', key);
+    replaceMultad(decryptedText, noOfLetters, text, "*ITH", 'W', key);
+    replaceMultad(decryptedText, noOfLetters, text, "IN*",  'G', key);
+    replaceMultad(decryptedText, noOfLetters, text, "*AN",  'C', key);
+    replaceMultad(decryptedText, noOfLetters, text, "*UT",  'B', key);
+    replaceMultad(decryptedText, noOfLetters, text, "*UT",  'P', key);
+    replaceMultad(decryptedText, noOfLetters, text, "E*",   'D', key);
+    replaceMultad(decryptedText, noOfLetters, text, "*E",   'K', key);
+    replaceMultad(decryptedText, noOfLetters, text, "U*",   'P', key);
 
 
 
-    int theTriadCount[NO_OF_LETTERS];
-    for (int count = 0; count < NO_OF_LETTERS; count++)
-        theTriadCount[count] = 0;
+    struct Letter doubleLetters[NO_OF_LETTERS];
 
-    int maxLetterId = 0;
-    for (int count = 0; count < noOfLetters - 2; count++) {
-        if (decryptedText[count] == 'T' && decryptedText[count + 2] == 'E') {
-            if (++theTriadCount[text[count + 1] - 'A'] > theTriadCount[maxLetterId]) {
-                maxLetterId = text[count + 1] - 'A';
-            }
-        }
+    for (int i = 0; i < NO_OF_LETTERS; i++) {
+        doubleLetters[i].letter = i + 'A';
+        doubleLetters[i].frequency = 0;
     }
 
-    for (int count = 0; count < noOfLetters; count++) {
-        if (text[count] == maxLetterId + 'A') {
-            decryptedText[count] = 'H';
-        }
-    }
-
-
-
-
-    int theDiadCount[NO_OF_LETTERS];
-    for (int count = 0; count < NO_OF_LETTERS; count++)
-        theDiadCount[count] = 0;
-
-    maxLetterId = 0;
     for (int count = 0; count < noOfLetters - 1; count++) {
-        if (decryptedText[count] == 'T' && decryptedText[count + 1] == '*') {
-            if (++theDiadCount[text[count + 1] - 'A'] > theDiadCount[maxLetterId]) {
-                maxLetterId = text[count + 1] - 'A';
-            }
+        if (text[count] == text[count + 1] && decryptedText[count] == '*') {
+            doubleLetters[text[count] - 'A'].frequency++;
         }
     }
+
+    qsort(doubleLetters, NO_OF_LETTERS, sizeof(struct Letter), comp);
 
     for (int count = 0; count < noOfLetters; count++) {
-        if (text[count] == maxLetterId + 'A') {
-            decryptedText[count] = 'O';
-        }
+        int letterIndex = 0;
+        if (text[count] == doubleLetters[0].letter)
+            decryptedText[count] = 'L';
     }
 
 
-
-
-    for (int count = 0; count < NO_OF_LETTERS; count++)
-        theDiadCount[count] = 0;
-
-    maxLetterId = 0;
-    for (int count = 0; count < noOfLetters - 1; count++) {
-        if (decryptedText[count] == 'E' && decryptedText[count + 1] == '*') {
-            if (++theDiadCount[text[count + 1] - 'A'] > theDiadCount[maxLetterId]) {
-                maxLetterId = text[count + 1] - 'A';
-            }
-        }
+    printf("%s\n", key);
+    for (int count = 0; count < NO_OF_LETTERS; count++) {
+        printf("%c", count + 'A');
     }
-
-    for (int count = 0; count < noOfLetters; count++) {
-        if (text[count] == maxLetterId + 'A') {
-            decryptedText[count] = 'R';
-        }
-    }
-
-
-
-
-    for (int count = 0; count < NO_OF_LETTERS; count++)
-        theDiadCount[count] = 0;
-
-    maxLetterId = 0;
-    for (int count = 0; count < noOfLetters - 1; count++) {
-        if (decryptedText[count] == 'A' && decryptedText[count + 1] == '*') {
-            if (++theDiadCount[text[count + 1] - 'A'] > theDiadCount[maxLetterId]) {
-                maxLetterId = text[count + 1] - 'A';
-            }
-        }
-    }
-
-    for (int count = 0; count < noOfLetters; count++) {
-        if (text[count] == maxLetterId + 'A') {
-            decryptedText[count] = 'N';
-        }
-    }
-
-
-
-
-    for (int count = 0; count < NO_OF_LETTERS; count++)
-        theTriadCount[count] = 0;
-
-    for (int count = 0; count < noOfLetters - 2; count++) {
-        if (decryptedText[count] == 'A' && decryptedText[count + 1] == 'N' && decryptedText[count + 2] == '*') {
-            if (++theTriadCount[text[count + 2] - 'A'] > theTriadCount[maxLetterId]) {
-                maxLetterId = text[count + 1] - 'A';
-            }
-        }
-    }
-
-    for (int count = 0; count < noOfLetters; count++) {
-        if (text[count] == maxLetterId + 'A') {
-            decryptedText[count] = 'D';
-        }
-    }
-
-
-
-
-//    struct Letter doubleLetters[NO_OF_LETTERS];
-//
-//    for (int i = 0; i < NO_OF_LETTERS; i++) {
-//        doubleLetters[i].letter = i + 'A';
-//        doubleLetters[i].frequency = 0;
-//    }
-//
-//    for (int count = 0; count < noOfLetters - 1; count++) {
-//        if (text[count] == text[count + 1] && decryptedText[count] == '*') {
-//            doubleLetters[text[count] - 'A'].frequency++;
-//        }
-//    }
-//
-//    qsort(doubleLetters, NO_OF_LETTERS, sizeof(struct Letter), comp);
-//
-//    for (int i = 0; i < NO_OF_LETTERS; i++) {
-//        printf("%c %d\n", doubleLetters[i].letter, doubleLetters[i].frequency);
-//    }
-//
-//    for (int count = 0; count < noOfLetters; count++) {
-//        int letterIndex = 0;
-//        if (text[count] == doubleLetters[0].letter)
-//            decryptedText[count] = 'S';
-//        //else if (text[count] == doubleLetters[1].letter)
-//        //    decryptedText[count] = 'F';
-//        //else if (text[count] == doubleLetters[2].letter)
-//        //    decryptedText[count] = 'L';
-//        //else if (text[count] == doubleLetters[3].letter)
-//        //    decryptedText[count] = 'M';
-//    }
-//
-//
+    printf("\n");
 
     for (int count = 0; count < noOfLetters; count++) {
         printf("%c", decryptedText[count]);
     }
 
-
-
-
-
-//    for (int i = 0; i < 25; i++) {
-//        if(text[i] == 'T' && text[i+2] == 'E') {
-//            frecvThe[text[i+1] - 65]++;
-//        }
-//    }
-//    for (int x = 'A'; x <= 'Z'; x++) {
-//        litereThe[nrLitereThe++] = x;
-//    }
-//
-//    for (int i = 0; i < 25; i++) {
-//        for (int j = i+1; j < 26; j++) {
-//            if (frecvThe[i] < frecvThe[j]) {
-//                int aux1;
-//                char aux_The;
-//                aux1 = frecvThe[i];
-//                aux_The = litereThe[i];
-//                frecvThe[i] = frecvThe[j];
-//                litereThe[i] = litereThe[j];
-//                frecvThe[j] = aux1;
-//                litereThe[j] = aux_The;
-//            }
-//        }
-//    }
-//
-//    key['H'-65] = litereThe[0];
-//
-//    for (int i = 0; i < 25; i++) {
-//        if (text[i] == 'T' && text[i] != key[frecvThe[0] - 65]) {
-//            frecvTo[text[i+1] - 65]++;
-//        }
-//    }
-//    for (int x = 'A'; x <= 'Z'; x++) {
-//        litereTo[nrLitereTo++] = x;
-//    }
-//
-//    for (int i = 0; i < 25; i++) {
-//        for ( int j = i+1; j < 26; j++) {
-//            if (frecvTo[i] < frecvTo[j]) {
-//                int aux2;
-//                char aux_To;
-//                aux2 = frecvTo[i];
-//                aux_To = litereTo[i];
-//                frecvTo[i] = frecvTo[j];
-//                litereTo[i] = litereTo[j];
-//                frecvTo[j] = aux2;
-//                litereTo[j] = aux_To;
-//            }
-//        }
-//    }
-//
-//    key['O' - 65] = litereTo[0];
-//
-//    cout << "\n";
-//    for (int i = 0; i < 26; i++) {
-//        cout << "pe pozitia "<< i << " cheia este " << key[i] << "\n";
-//    }
 }
 
 
